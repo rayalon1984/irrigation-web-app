@@ -145,6 +145,72 @@ def compute_manual_timers(statuses):
 # ----- פה משאיר את התבנית שלך בדיוק כמו שהייתה -----
 # (כולל ה־HTML עם ה־CSS לשלושת ה־themes וכל הלוגיקה)
 
+@app.route('/health')
+def health_check():
+    """
+    Health check endpoint that verifies:
+    - Database connectivity
+    - Scheduler status
+    - Control4 configuration
+    """
+    health_status = {
+        "status": "healthy",
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "checks": {}
+    }
+
+    # Check database connectivity
+    try:
+        conn = sqlite3.connect(DB)
+        c = conn.cursor()
+        c.execute("SELECT 1")
+        c.fetchone()
+        conn.close()
+        health_status["checks"]["database"] = {"status": "ok", "message": "Database connection successful"}
+    except Exception as e:
+        health_status["status"] = "unhealthy"
+        health_status["checks"]["database"] = {"status": "error", "message": str(e)}
+
+    # Check scheduler status
+    try:
+        if scheduler.running:
+            jobs_count = len(scheduler.get_jobs())
+            health_status["checks"]["scheduler"] = {
+                "status": "ok",
+                "message": f"Scheduler is running with {jobs_count} jobs"
+            }
+        else:
+            health_status["status"] = "unhealthy"
+            health_status["checks"]["scheduler"] = {"status": "error", "message": "Scheduler is not running"}
+    except Exception as e:
+        health_status["status"] = "unhealthy"
+        health_status["checks"]["scheduler"] = {"status": "error", "message": str(e)}
+
+    # Check Control4 configuration
+    missing_configs = []
+    for zone, commands in C4_COMMANDS.items():
+        if not commands["start"]:
+            missing_configs.append(f"C4_{zone.upper()}_START")
+        if not commands["stop"]:
+            missing_configs.append(f"C4_{zone.upper()}_STOP")
+
+    if missing_configs:
+        health_status["checks"]["control4_config"] = {
+            "status": "warning",
+            "message": f"Missing environment variables: {', '.join(missing_configs)}"
+        }
+        # Don't mark as unhealthy for missing config, just warning
+    else:
+        health_status["checks"]["control4_config"] = {
+            "status": "ok",
+            "message": "All Control4 endpoints configured"
+        }
+
+    # Return appropriate HTTP status code
+    status_code = 200 if health_status["status"] == "healthy" else 503
+
+    return health_status, status_code
+
 # בסוף:
 if __name__ == "__main__":
     init_db()
