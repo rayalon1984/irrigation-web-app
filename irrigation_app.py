@@ -23,10 +23,11 @@ DB = "irrigation.db"
 scheduler = BackgroundScheduler(job_defaults={'misfire_grace_time': 3600, 'coalesce': True})
 
 ZONES = {"lawn": "דשא", "trees": "עצים", "hedge": "גדר חיה"}
+# NOTE: These are example URLs. Configure your actual Control4 URLs in .env file
 C4_COMMANDS = {
-    "lawn":  {"start": "http://192.168.1.201:49792/grass1", "stop": "http://192.168.1.201:49792/grass0"},
-    "trees": {"start": "http://192.168.1.201:49792/trees1", "stop": "http://192.168.1.201:49792/trees0"},
-    "hedge": {"start": "http://192.168.1.201:49792/rocks1", "stop": "http://192.168.1.201:49792/rocks0"}
+    "lawn":  {"start": "http://192.168.1.100:8080/grass1", "stop": "http://192.168.1.100:8080/grass0"},
+    "trees": {"start": "http://192.168.1.100:8080/trees1", "stop": "http://192.168.1.100:8080/trees0"},
+    "hedge": {"start": "http://192.168.1.100:8080/rocks1", "stop": "http://192.168.1.100:8080/rocks0"}
 }
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

@@ -98,12 +98,13 @@ source venv/bin/activate
 # 3️⃣ Install dependencies
 pip install -r requirements.txt
 
-# 4️⃣ Configure environment
+# 4️⃣ Configure environment variables
 cp .env.example .env
-nano .env  # Edit with your Control4 URLs
+nano .env  # Replace example URLs with your actual Control4 IPs and ports
 
 # 5️⃣ Set up Pushover credentials
-nano config.py  # Add your tokens
+cp config_example.py config.py
+nano config.py  # Add your actual Pushover tokens
 
 # 6️⃣ Run the app
 python irrigation_app.py
@@ -125,16 +126,16 @@ python irrigation_app.py
 DB_PATH=irrigation.db
 
 # Control4 URLs - Lawn Zone
-C4_LAWN_START=http://192.168.1.201:49792/grass1
-C4_LAWN_STOP=http://192.168.1.201:49792/grass0
+C4_LAWN_START=http://192.168.1.100:8080/grass1
+C4_LAWN_STOP=http://192.168.1.100:8080/grass0
 
 # Control4 URLs - Trees Zone
-C4_TREES_START=http://192.168.1.201:49792/trees1
-C4_TREES_STOP=http://192.168.1.201:49792/trees0
+C4_TREES_START=http://192.168.1.100:8080/trees1
+C4_TREES_STOP=http://192.168.1.100:8080/trees0
 
 # Control4 URLs - Hedge Zone
-C4_HEDGE_START=http://192.168.1.201:49792/rocks1
-C4_HEDGE_STOP=http://192.168.1.201:49792/rocks0
+C4_HEDGE_START=http://192.168.1.100:8080/rocks1
+C4_HEDGE_STOP=http://192.168.1.100:8080/rocks0
 ```
 
 ### 📱 Pushover Notifications (`config.py`)
@@ -223,7 +224,7 @@ GET /api/report_status/<zone>/<state>
 
 **Example:**
 ```bash
-curl http://192.168.1.25:5080/api/report_status/lawn/on
+curl http://localhost:5080/api/report_status/lawn/on
 ```
 
 ---
@@ -257,7 +258,7 @@ POST /api/delete/<table>/<id>
 
 **Example:**
 ```bash
-curl -X POST http://192.168.1.25:5080/api/delete/schedules/5
+curl -X POST http://localhost:5080/api/delete/schedules/5
 ```
 
 #### Clear All
@@ -268,7 +269,7 @@ POST /api/clear/<table>
 
 **Example:**
 ```bash
-curl -X POST http://192.168.1.25:5080/api/clear/history
+curl -X POST http://localhost:5080/api/clear/history
 ```
 
 ---
@@ -378,7 +379,7 @@ The system now:
 
 ```bash
 # Check application health
-curl http://192.168.1.25:5080/health | jq
+curl http://localhost:5080/health | jq
 
 # Expected output
 {
