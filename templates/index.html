@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light dark">
+    <title>ניהול השקיה - {{ version }}</title>
+    <style>
+        :root{
+            --bg:#f0f2f5; --card:#ffffff; --text:#111; --muted:#666; --border:#e0e0e0;
+            --shadow:0 2px 8px rgba(0,0,0,0.1); --primary:#007bff; --danger:#dc3545;
+            --status-on:#28a745; --status-off:#6c757d; --input-border:#ccc;
+        }
+        @media (prefers-color-scheme: dark){
+            :root{
+                --bg:#0f1115; --card:#1a1f27; --text:#e6e6e6; --muted:#9aa4b2; --border:#2a2f36;
+                --shadow:0 2px 10px rgba(0,0,0,0.45); --primary:#3b82f6; --danger:#ef4444;
+                --status-on:#22c55e; --status-off:#475569; --input-border:#39414d;
+            }
+        }
+
+        body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background-color: var(--bg); color: var(--text); margin: 0; padding: 15px; }
+        .container { max-width: 700px; margin: auto; }
+        .card { background-color: var(--card); border-radius: 12px; box-shadow: var(--shadow); margin-bottom: 20px; overflow: hidden; border:1px solid var(--border); }
+        .card-body { padding: 20px; }
+        h2, h3, h4 { margin: 0; }
+        details { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 15px; background: var(--card); }
+        summary { cursor: pointer; padding: 15px 20px; font-weight: bold; font-size: 1.2em; display: flex; justify-content: space-between; align-items: center; list-style: none; border-bottom: 1px solid var(--border); }
+        summary::-webkit-details-marker { display: none; }
+        summary:hover { background-color: rgba(127,127,127,0.06); }
+
+        .header-top { display:flex; justify-content:space-between; align-items:center; padding: 15px 20px; border-bottom:1px solid var(--border); }
+        .status { padding: 4px 10px; border-radius: 15px; font-size: 0.9em; font-weight: bold; }
+        .status-on { background-color: var(--status-on); color: white; }
+        .status-off { background-color: var(--status-off); color: white; }
+        .controls, .schedule-form { padding: 0 20px 20px; }
+        button { background-color: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 1em; }
+        button.danger { background-color: var(--danger); }
+        button.delete { background-color: var(--danger); font-size: 0.8em; padding: 5px 10px; color:#fff; }
+
+        /* X לבן בכפתורי מחיקה של פריטים בודדים */
+        .list-item .delete{ position: relative; color: transparent; }
+        .list-item .delete::before{
+            content: "×";
+            position: absolute; inset: 0;
+            display: grid; place-items: center;
+            color:#fff; font-size:1.1em; font-weight:700;
+        }
+
+        .schedule-form label { font-size: 0.9em; color: var(--muted); margin-bottom: 4px; display: block; }
+        .schedule-form input { width: 100%; box-sizing: border-box; padding: 8px; border-radius: 5px; border: 1px solid var(--input-border); background: transparent; color: var(--text); }
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .list-item:last-child { border-bottom: none; }
+        .muted { color:var(--muted); font-size:0.9em; }
+        .footer { text-align: center; color:var(--muted); font-size: 0.85em; padding: 6px 0 0 0; }
+
+        @media (max-width: 480px) {
+            .controls form { flex-wrap: wrap; gap: 8px; }
+            .controls input[type=number] { width: 80px; }
+            .schedule-form form { grid-template-columns: 1fr !important; }
+            .card-body { padding: 14px; }
+            summary { font-size: 1.05em; padding: 12px 16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="header-top">
+            <h2>ניהול השקיה</h2>
+            <div class="muted">HTML v1.3.1 · App {{ version }}</div>
+        </div>
+        <div class="card-body">
+            {% for zone, name in zones.items() %}
+            <details data-zone="{{ zone }}">
+                <summary>
+                    <span>{{ name }}</span>
+                    <span class="status status-{{ statuses[zone].state }}">{{ 'פועל' if statuses[zone].state == 'on' else 'כבוי' }}</span>
+                </summary>
+                <div class="controls">
+                    <form method="post" action="{{ url_for('index') }}" style="display:flex; gap:10px; align-items:center;">
+                        <input type="hidden" name="zone" value="{{ zone }}">
+                        <button type="submit" name="action" value="start">הפעל</button>
+                        <input type="number" name="duration" value="30" min="1" style="width:60px; padding:8px; border-radius:5px; border:1px solid var(--input-border);"> דקות
+                        <button type="submit" name="action" value="stop" class="danger">עצור</button>
+                    </form>
+                </div>
+                <div class="schedule-form">
+                    <h4 style="margin-top:20px; margin-bottom:10px;">הוספת תזמון חדש</h4>
+                    <form method="post" action="{{ url_for('index') }}" style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                        <input type="hidden" name="zone" value="{{ zone }}">
+                        <input type="hidden" name="action" value="schedule">
+                        <div><label>תאריך התחלה</label><input type="date" name="start_date" required></div>
+                        <div><label>שעת התחלה</label><input type="time" name="start_time" required></div>
+                        <div><label>משך (דקות)</label><input type="number" name="duration" value="20" min="1" required></div>
+                        <div><label>כל כמה ימים <span class="muted">(ריק לאירוע חד פעמי)</span></label><input type="number" name="interval_days" min="1" placeholder=""></div>
+                        <div style="grid-column: span 2;"><label>תאריך סיום <span class="muted">(אופציונלי)</span></label><input type="date" name="end_date"></div>
+                        <div style="grid-column: span 2;"><button type="submit" style="width:100%;">שמור תזמון</button></div>
+                    </form>
+                </div>
+            </details>
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="card">
+        <details data-section="schedules">
+            <summary>
+                <h3>תזמונים קיימים</h3>
+                <button class="delete" onclick="event.stopPropagation(); clearTable('schedules')">מחק הכל</button>
+            </summary>
+            <div class="card-body" id="schedules-list">
+                {% for s in schedules %}
+                <div class="list-item" id="schedule-{{ s.id }}">
+                    <span>
+                        <b>{{ zones[s.zone] }}:</b>
+                        {{ s.duration }} דקות,
+                        {% if s.interval_days and s.interval_days|int > 0 %}
+                            כל {{ s.interval_days }} ימים
+                        {% else %}
+                            חד פעמי
+                        {% endif %}
+                        <span class="muted">| הריצה הבאה: {{ upcoming.get(s.id, 'N/A') }}</span>
+                    </span>
+                    <button class="delete" onclick="deleteItem('schedules', {{ s.id }})">❌</button>
+                </div>
+                {% else %}
+                <p class="muted" style="text-align:center;">אין תזמונים שמורים.</p>
+                {% endfor %}
+            </div>
+        </details>
+    </div>
+
+    <div class="card">
+        <details data-section="history">
+            <summary>
+                <h3>היסטוריית השקיה</h3>
+                <button class="delete" onclick="event.stopPropagation(); clearTable('history')">מחק הכל</button>
+            </summary>
+            <div class="card-body" id="history-list">
+                {% for h in history %}
+                <div class="list-item" id="history-{{ h.id }}">
+                    <span><b>{{ zones[h.zone] }}:</b> {{ h.duration }} דקות, {{ h.start_ts }}</span>
+                    <button class="delete" onclick="deleteItem('history', {{ h.id }})">❌</button>
+                </div>
+                {% else %}
+                <p class="muted" style="text-align:center;">אין היסטוריה.</p>
+                {% endfor %}
+            </div>
+            <div class="footer">HTML v1.3.1</div>
+        </details>
+    </div>
+</div>
+
+<script>
+(function persistZoneDetails() {
+    const KEY_PREFIX = 'irrigation_details_open_';
+    const isSmall = window.matchMedia('(max-width: 480px)').matches;
+    document.querySelectorAll('details[data-zone]').forEach(d => {
+        const zone = d.getAttribute('data-zone');
+        const key = KEY_PREFIX + zone;
+        const saved = localStorage.getItem(key);
+        if (saved === 'open') d.setAttribute('open', '');
+        else if (saved === 'closed') d.removeAttribute('open');
+        else if (isSmall) d.removeAttribute('open');
+        d.addEventListener('toggle', () => localStorage.setItem(key, d.open ? 'open' : 'closed'));
+    });
+})();
+(function persistSectionDetails() {
+    const KEY_PREFIX = 'irrigation_section_open_';
+    const isSmall = window.matchMedia('(max-width: 480px)').matches;
+    document.querySelectorAll('details[data-section]').forEach(d => {
+        const section = d.getAttribute('data-section');
+        const key = KEY_PREFIX + section;
+        const saved = localStorage.getItem(key);
+        if (saved === 'open') d.setAttribute('open','');
+        else if (saved === 'closed') d.removeAttribute('open');
+        else if (isSmall) d.removeAttribute('open');
+        d.addEventListener('toggle', () => localStorage.setItem(key, d.open ? 'open' : 'closed'));
+    });
+})();
+document.querySelectorAll('summary button').forEach(btn => {
+    btn.addEventListener('click', e => e.stopPropagation());
+});
+function deleteItem(table, itemId) {
+    if (!confirm('למחוק את הרשומה הנבחרת')) return;
+    fetch(`/api/delete/${table}/${itemId}`, { method: 'POST' })
+        .then(r => r.json())
+        .then(d => {
+            if (d.status === 'deleted') {
+                const el = document.getElementById(`${table === 'schedules' ? 'schedule' : 'history'}-${itemId}`);
+                if (el) el.remove();
+                const parent = document.getElementById(`${table}-list`);
+                if (parent && parent.children.length === 0) {
+                    parent.innerHTML = `<p class="muted" style="text-align:center;">הרשומות נמחקו.</p>`;
+                }
+            }
+        });
+}
+function clearTable(table) {
+    if (!confirm(`האם למחוק את כל רשומות ה-${table}`)) return;
+    fetch(`/api/clear/${table}`, { method: 'POST' })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'cleared') {
+                document.getElementById(`${table}-list`).innerHTML = `<p class="muted" style="text-align:center;">הרשומות נמחקו.</p>`;
+            }
+        });
+}
+</script>
+</body>
+</html>
