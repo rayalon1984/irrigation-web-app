@@ -1,3 +1,31 @@
+# Environment and secrets
 .env
+config.py
+
+# Virtual environment
 venv/
+
+# Database
 *.db
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Backups
+backups/
+*.backup
+.backup.lock
+
+# Temp files
+.tmp/
+*.tmp
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
