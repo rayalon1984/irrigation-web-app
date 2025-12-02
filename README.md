@@ -1,177 +1,386 @@
-# Irrigation Web App
+<div align="center">
 
-A Flask-based web application for managing and scheduling irrigation zones through Control4 smart home integration.
+# 💧 Irrigation Web App
 
-## Version
+### Smart Irrigation Management System for Home Automation
 
-**Current Version**: 6.2.3
-**HTML UI Version**: 1.3.1
-**Last Updated**: December 2, 2025
+[![Version](https://img.shields.io/badge/version-6.2.3-blue.svg)](https://github.com/rayalon1984/irrigation-web-app/releases)
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/flask-3.1.1-green.svg)](https://flask.palletsprojects.com/)
+[![License](https://img.shields.io/badge/license-Private-red.svg)]()
 
-## Features
+![Irrigation Dashboard](screenshots/dashboard.png)
 
-- **Manual Control**: Start/stop irrigation for three zones (Lawn, Trees, Hedge)
-- **Scheduled Irrigation**: Create one-time or recurring irrigation schedules
-- **Smart Recovery**: Automatically detects and fixes stuck irrigation zones on startup
-- **History Tracking**: Complete irrigation history with duration tracking
-- **Push Notifications**: Pushover integration for irrigation status updates
-- **Control4 Integration**: Direct HTTP commands to Control4 system
-- **Responsive UI**: Hebrew RTL interface with dark mode support
-- **Health Monitoring**: Built-in health check endpoint for monitoring
+*Modern, responsive web interface with Hebrew RTL support and automatic dark mode*
 
-## Architecture
+</div>
 
-### Tech Stack
-- **Backend**: Flask (Python 3.11)
-- **Scheduler**: APScheduler with background job execution
-- **Database**: SQLite3
-- **Notifications**: Pushover API
-- **Smart Home**: Control4 HTTP API
+---
 
-### Database Schema
-- `status` - Current state of each irrigation zone
-- `schedules` - Recurring and one-time irrigation schedules
-- `history` - Complete irrigation event log with durations
+## 🌟 Features
 
-## Installation
+<table>
+<tr>
+<td width="50%">
 
-1. Clone the repository:
+### 🎮 **Manual Control**
+- Instant start/stop for all zones
+- Custom duration settings
+- Real-time status updates
+- Emergency stop capability
+
+</td>
+<td width="50%">
+
+### ⏰ **Smart Scheduling**
+- One-time irrigation events
+- Recurring schedules (daily/weekly)
+- Flexible date ranges
+- Automatic execution
+
+</td>
+</tr>
+<tr>
+<td width="50%">
+
+### 🔧 **Auto-Recovery**
+- Detects stuck irrigation zones
+- Auto-stops on app restart
+- Calculates accurate durations
+- Prevents water waste
+
+</td>
+<td width="50%">
+
+### 📊 **History & Monitoring**
+- Complete irrigation logs
+- Duration tracking
+- Health check endpoint
+- Real-time notifications
+
+</td>
+</tr>
+</table>
+
+## 🏡 Irrigation Zones
+
+| Zone | Hebrew | Control4 ID |
+|------|---------|-------------|
+| 🌱 **Lawn** | דשא | grass |
+| 🌳 **Trees** | עצים | trees |
+| 🌿 **Hedge** | גדר חיה | rocks |
+
+---
+
+## 🚀 Quick Start
+
+### Prerequisites
+
 ```bash
+# System requirements
+- Raspberry Pi (or any Linux system)
+- Python 3.11+
+- Control4 Smart Home system
+- Pushover account (for notifications)
+```
+
+### Installation
+
+```bash
+# 1️⃣ Clone the repository
 git clone git@github.com:rayalon1984/irrigation-web-app.git
 cd irrigation-web-app
-```
 
-2. Create virtual environment and install dependencies:
-```bash
+# 2️⃣ Create virtual environment
 python3 -m venv venv
 source venv/bin/activate
-pip install flask apscheduler requests
+
+# 3️⃣ Install dependencies
+pip install -r requirements.txt
+
+# 4️⃣ Configure environment
+cp .env.example .env
+nano .env  # Edit with your Control4 URLs
+
+# 5️⃣ Set up Pushover credentials
+nano config.py  # Add your tokens
+
+# 6️⃣ Run the app
+python irrigation_app.py
 ```
 
-3. Configure environment variables in `.env`:
+### Access the Dashboard
+
+```
+🌐 http://localhost:5080
+```
+
+---
+
+## ⚙️ Configuration
+
+### 📝 Environment Variables (`.env`)
+
 ```bash
 DB_PATH=irrigation.db
+
+# Control4 URLs - Lawn Zone
 C4_LAWN_START=http://192.168.1.201:49792/grass1
 C4_LAWN_STOP=http://192.168.1.201:49792/grass0
+
+# Control4 URLs - Trees Zone
 C4_TREES_START=http://192.168.1.201:49792/trees1
 C4_TREES_STOP=http://192.168.1.201:49792/trees0
+
+# Control4 URLs - Hedge Zone
 C4_HEDGE_START=http://192.168.1.201:49792/rocks1
 C4_HEDGE_STOP=http://192.168.1.201:49792/rocks0
 ```
 
-4. Configure Pushover credentials in `config.py`:
+### 📱 Pushover Notifications (`config.py`)
+
 ```python
-PUSHOVER_APP_TOKEN = "your_app_token"
-PUSHOVER_USER_KEY = "your_user_key"
+PUSHOVER_APP_TOKEN = "your_app_token_here"
+PUSHOVER_USER_KEY = "your_user_key_here"
 ```
 
-5. Run the application:
-```bash
-python irrigation_app.py
+Get your tokens from [Pushover.net](https://pushover.net/)
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph LR
+    A[Web UI] --> B[Flask App]
+    B --> C[SQLite DB]
+    B --> D[APScheduler]
+    B --> E[Control4 HTTP API]
+    B --> F[Pushover API]
+    E --> G[Irrigation Valves]
+    F --> H[Mobile Notifications]
 ```
 
-The app will be available at `http://localhost:5080`
+### 🛠️ Tech Stack
 
-## API Endpoints
+| Component | Technology | Purpose |
+|-----------|-----------|---------|
+| **Backend** | Flask 3.1.1 | Web framework |
+| **Scheduler** | APScheduler 3.11.0 | Job scheduling |
+| **Database** | SQLite3 | Data persistence |
+| **UI** | HTML5 + CSS3 | Responsive interface |
+| **Notifications** | Pushover API | Push alerts |
+| **Smart Home** | Control4 HTTP | Device control |
+
+### 🗄️ Database Schema
+
+```sql
+-- Current status of each zone
+CREATE TABLE status (
+    zone TEXT PRIMARY KEY,
+    state TEXT,           -- 'on' or 'off'
+    start_ts TEXT         -- ISO timestamp
+);
+
+-- Scheduled irrigation jobs
+CREATE TABLE schedules (
+    id INTEGER PRIMARY KEY,
+    zone TEXT,
+    start_date TEXT,      -- YYYY-MM-DD
+    start_time TEXT,      -- HH:MM
+    duration INTEGER,     -- minutes
+    interval_days INTEGER,-- 0 for one-time
+    end_date TEXT         -- optional
+);
+
+-- Complete irrigation history
+CREATE TABLE history (
+    id INTEGER PRIMARY KEY,
+    zone TEXT,
+    start_ts TEXT,
+    duration INTEGER      -- actual minutes run
+);
+```
+
+---
+
+## 🔌 API Reference
 
 ### Status Reporting
-- `GET /api/report_status/<zone>/<state>` - Control4 callback for status updates
 
-### Schedule Management
-- `POST /api/schedule` - Create new irrigation schedule
-- `POST /api/delete/<table>/<id>` - Delete schedule or history entry
-- `POST /api/clear/<table>` - Clear all schedules or history
-
-### Health Check
-- `GET /health` - Application health and scheduler status
-
-## Configuration
-
-### Irrigation Zones
-Edit the `ZONES` dictionary in `irrigation_app.py`:
-```python
-ZONES = {"lawn": "דשא", "trees": "עצים", "hedge": "גדר חיה"}
+```http
+GET /api/report_status/<zone>/<state>
 ```
 
-### Control4 Commands
-Edit the `C4_COMMANDS` dictionary for your Control4 setup:
-```python
-C4_COMMANDS = {
-    "lawn":  {"start": "http://...", "stop": "http://..."},
-    "trees": {"start": "http://...", "stop": "http://..."},
-    "hedge": {"start": "http://...", "stop": "http://..."}
+**Parameters:**
+- `zone`: `lawn`, `trees`, or `hedge`
+- `state`: `on` or `off`
+
+**Response:**
+```json
+{"status": "reported"}
+```
+
+**Example:**
+```bash
+curl http://192.168.1.25:5080/api/report_status/lawn/on
+```
+
+---
+
+### Schedule Management
+
+#### Create Schedule
+
+```http
+POST /api/schedule
+Content-Type: application/json
+```
+
+**Body:**
+```json
+{
+  "zone": "lawn",
+  "start_date": "2025-12-03",
+  "start_time": "06:00",
+  "duration": 30,
+  "interval_days": 2,
+  "end_date": "2025-12-31"
 }
 ```
 
-## Critical Bug Fix (v6.2.3)
+#### Delete Item
 
-### Issue
-**Discovered**: December 2, 2025
-**Severity**: Critical
-
-Irrigation zones could become stuck in "on" state indefinitely if the application restarted before a scheduled stop time. This occurred because:
-
-1. Manual irrigation starts created APScheduler jobs to stop irrigation after the specified duration
-2. These scheduled jobs were stored only in memory
-3. If the app restarted (crash, deployment, power loss), the stop job was lost
-4. Irrigation would continue running indefinitely
-5. Database status remained "on" with no automatic recovery
-
-**Real Impact**: The lawn zone was stuck in "on" state for **3 days (4,389 minutes)** from November 29-December 2, 2025.
-
-### Root Cause
-Located in `irrigation_app.py:175-178`:
-```python
-scheduler.add_job(lambda z=zone: send_to_control4(C4_COMMANDS[z]['stop']),
-                  'date', run_date=stop_time, id=f"timed_stop_{zone}",
-                  replace_existing=True)
+```http
+POST /api/delete/<table>/<id>
 ```
 
-The scheduled stop job was not persisted across application restarts.
+**Example:**
+```bash
+curl -X POST http://192.168.1.25:5080/api/delete/schedules/5
+```
 
-### Solution
-Added `recover_stuck_zones()` function (v6.2.3) that runs on every application startup:
+#### Clear All
 
-1. **Detection**: Queries database for zones in "on" state
-2. **Calculation**: Computes actual runtime duration from start timestamp
-3. **Recovery**: Sends stop command to Control4 system
-4. **Logging**: Adds entry to history with calculated duration
-5. **Notification**: Sends Pushover alert about recovery action
-6. **Cleanup**: Updates database status to "off"
+```http
+POST /api/clear/<table>
+```
 
-Implementation in `irrigation_app.py:402-438`:
+**Example:**
+```bash
+curl -X POST http://192.168.1.25:5080/api/clear/history
+```
+
+---
+
+### Health Check
+
+```http
+GET /health
+```
+
+**Response:**
+```json
+{
+  "ok": true,
+  "version": "6.2.3",
+  "jobs_count": 2,
+  "next_runs": [
+    {
+      "id": "sched_1",
+      "next_run": "2025-12-03 06:00:00"
+    }
+  ]
+}
+```
+
+---
+
+## 🚨 Critical Bug Fix (v6.2.3)
+
+### 🐛 The Problem
+
+On **December 2, 2025**, a critical issue was discovered:
+
+> **The lawn irrigation zone was stuck in "on" state for 3 consecutive days (4,389 minutes)** 💦😱
+
+### 🔍 Root Cause
+
+When manual irrigation started, the app scheduled a stop job using APScheduler:
+
+```python
+# irrigation_app.py:175-178
+scheduler.add_job(
+    lambda z=zone: send_to_control4(C4_COMMANDS[z]['stop']),
+    'date',
+    run_date=stop_time,
+    id=f"timed_stop_{zone}",
+    replace_existing=True
+)
+```
+
+**The Issue:**
+- Scheduled jobs are stored in memory only
+- If the app restarts (crash, deployment, reboot), the job is lost
+- Irrigation continues indefinitely
+- Database shows status as "on" permanently
+- No automatic recovery mechanism
+
+### ✅ The Solution
+
+Added **`recover_stuck_zones()`** function that runs on every startup:
+
 ```python
 def recover_stuck_zones():
     """Check for zones stuck in 'on' state and recover them on startup"""
     with get_db_conn() as conn:
-        stuck = conn.execute("SELECT zone, start_ts FROM status WHERE state='on'").fetchall()
+        stuck = conn.execute(
+            "SELECT zone, start_ts FROM status WHERE state='on'"
+        ).fetchall()
 
     for row in stuck:
         zone = row['zone']
         start_ts = row['start_ts']
-        logging.warning(f"Found stuck zone '{zone}' in 'on' state since {start_ts}")
 
-        # Calculate duration and send stop command
-        # Add to history and update status
-        # Send notification
+        # Calculate how long it's been running
+        duration = calculate_duration(start_ts)
+
+        # Send stop command to Control4
+        send_to_control4(C4_COMMANDS[zone]['stop'])
+
+        # Update database
+        add_to_history(zone, start_ts, duration)
+        update_status(zone, 'off')
+
+        # Notify user
+        send_pushover_notification(
+            f"⚠️ השקיית {ZONES[zone]} הופסקה בעת אתחול המערכת"
+        )
 ```
 
-### Prevention
-The recovery function now ensures that:
-- No irrigation zone can remain stuck after application restart
-- All irrigation events are properly logged with accurate durations
-- Users receive notifications about automatic recovery actions
-- System self-heals on every startup
+### 🛡️ Prevention
 
-## Monitoring
+The system now:
+- ✅ Automatically detects stuck zones on startup
+- ✅ Sends stop commands to Control4
+- ✅ Calculates accurate run durations
+- ✅ Updates history logs
+- ✅ Sends recovery notifications
+- ✅ Prevents water waste
+
+**Result:** No irrigation zone can remain stuck after an app restart! 🎉
+
+---
+
+## 📊 Monitoring
 
 ### Health Check
-```bash
-curl http://192.168.1.25:5080/health
-```
 
-Response:
-```json
+```bash
+# Check application health
+curl http://192.168.1.25:5080/health | jq
+
+# Expected output
 {
   "ok": true,
   "version": "6.2.3",
@@ -181,46 +390,200 @@ Response:
 ```
 
 ### System Status
-Check running process:
+
 ```bash
+# Check if app is running
 ps aux | grep irrigation_app
-```
 
-Check logs:
-```bash
+# View recent activity
 journalctl -u irrigation -n 50
+
+# Check database
+sqlite3 irrigation.db "SELECT * FROM status"
 ```
 
-## Backup
+### Backup Database
 
-Included `backup_sqlite.sh` script for automated database backups:
+The included `backup_sqlite.sh` script creates timestamped backups:
+
 ```bash
 ./backup_sqlite.sh
 ```
 
-## Contributing
-
-This is a personal home automation project. Feel free to fork and adapt for your own use.
-
-## License
-
-Private use only.
-
-## Changelog
-
-### v6.2.3 (2025-12-02)
-- **Critical Fix**: Added automatic recovery for stuck irrigation zones on startup
-- **Enhancement**: Comprehensive logging for recovery operations
-- **Enhancement**: Pushover notifications for recovery events
-- Fixed 3-day stuck irrigation issue
-
-### v6.2.2
-- Previous stable version
-- Basic irrigation control and scheduling
-
-## Support
-
-For issues or questions, please open an issue on GitHub.
+Backups are stored in `./backups/` directory.
 
 ---
-**Built with Flask** | **Powered by Control4** | **Deployed on Raspberry Pi**
+
+## 📱 Notifications
+
+The app sends Pushover notifications for:
+
+| Event | Message |
+|-------|---------|
+| 💧 **Start** | "השקיית [zone] החלה" |
+| ✅ **Stop** | "השקיית [zone] הסתיימה לאחר X דקות" |
+| ⚠️ **Recovery** | "השקיית [zone] הופסקה בעת אתחול המערכת" |
+
+---
+
+## 🎨 UI Features
+
+### 🌓 Automatic Dark Mode
+The interface automatically switches between light and dark themes based on system preferences.
+
+### 📱 Mobile Responsive
+Optimized layout for mobile devices with touch-friendly controls.
+
+### 🇮🇱 Hebrew RTL Support
+Full right-to-left support for Hebrew language UI.
+
+### 💾 State Persistence
+Zone expansion states are saved in browser localStorage.
+
+---
+
+## 🔧 Development
+
+### Project Structure
+
+```
+irrigation-web-app/
+├── irrigation_app.py       # Main application
+├── config.py              # Pushover credentials
+├── requirements.txt       # Python dependencies
+├── .env                   # Environment variables
+├── irrigation.db          # SQLite database
+├── templates/
+│   └── index.html        # Web UI template
+├── static/
+│   └── logo.PNG          # App logo
+├── screenshots/
+│   └── dashboard.png     # UI preview
+├── backup_sqlite.sh      # Backup utility
+├── healthcheck.sh        # Health monitor
+└── README.md             # This file
+```
+
+### Running in Development
+
+```bash
+# Enable debug mode
+export FLASK_ENV=development
+
+# Run with auto-reload
+python irrigation_app.py
+```
+
+### Testing API Endpoints
+
+```bash
+# Test health check
+curl http://localhost:5080/health
+
+# Test status report
+curl http://localhost:5080/api/report_status/lawn/on
+
+# Create test schedule
+curl -X POST http://localhost:5080/api/schedule \
+  -H "Content-Type: application/json" \
+  -d '{"zone":"lawn","start_date":"2025-12-03","start_time":"06:00","duration":30,"interval_days":0}'
+```
+
+---
+
+## 🚀 Deployment
+
+### Production Setup
+
+```bash
+# 1. Set up as systemd service
+sudo nano /etc/systemd/system/irrigation.service
+
+# 2. Add service configuration
+[Unit]
+Description=Irrigation Web App
+After=network.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/smart-home/irrigation
+ExecStart=/home/pi/smart-home/irrigation/venv/bin/python irrigation_app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+
+# 3. Enable and start
+sudo systemctl enable irrigation
+sudo systemctl start irrigation
+```
+
+### Monitoring in Production
+
+```bash
+# Check service status
+sudo systemctl status irrigation
+
+# View logs
+journalctl -u irrigation -f
+
+# Restart service
+sudo systemctl restart irrigation
+```
+
+---
+
+## 📈 Changelog
+
+### **v6.2.3** (2025-12-02) 🎉
+- 🐛 **CRITICAL FIX**: Added automatic recovery for stuck irrigation zones
+- ✨ **NEW**: `recover_stuck_zones()` function runs on startup
+- 📝 **NEW**: Comprehensive README with full documentation
+- 🔔 **ENHANCED**: Pushover notifications for recovery events
+- 📊 **ENHANCED**: Better logging for all operations
+- 🎨 **NEW**: Screenshots and visual documentation
+
+### **v6.2.2** (Previous)
+- ⏰ Basic scheduling functionality
+- 🎮 Manual zone control
+- 📊 History tracking
+- 🔔 Pushover notifications
+
+---
+
+## 🤝 Contributing
+
+This is a personal home automation project, but feel free to:
+- 🍴 Fork the repository
+- 🐛 Report issues
+- 💡 Suggest improvements
+- ⭐ Star if you find it useful!
+
+---
+
+## 📄 License
+
+**Private Use Only** - This project is for personal home automation.
+
+---
+
+## 🙏 Acknowledgments
+
+- Built with ❤️ for smart home automation
+- Powered by [Flask](https://flask.palletsprojects.com/)
+- Scheduled with [APScheduler](https://apscheduler.readthedocs.io/)
+- Notifications via [Pushover](https://pushover.net/)
+- Integrated with [Control4](https://www.control4.com/)
+
+---
+
+<div align="center">
+
+### 💧 Keep Your Garden Green, Smartly! 🌱
+
+**Made with 🔧 on Raspberry Pi**
+
+[Report Bug](https://github.com/rayalon1984/irrigation-web-app/issues) · [Request Feature](https://github.com/rayalon1984/irrigation-web-app/issues)
+
+</div>
